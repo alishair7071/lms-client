@@ -18,12 +18,15 @@ type Props = {
 };
 
 const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
-  const { data, isLoading } = useGetOrdersAnalyticsQuery({});
+  const { data, isLoading, error } = useGetOrdersAnalyticsQuery({});
   
-  const analyticsData: any = [];
-    data?.orders?.last12Months?.forEach((item: any) => {
-      analyticsData.push({ name: item.month, Count: item.count });
-    });
+  const last12Months =
+    data?.orders?.last12Months ?? data?.last12Months ?? data?.ordersLast12Months ?? [];
+
+  const analyticsData: any[] = [];
+  last12Months?.forEach?.((item: any) => {
+    analyticsData.push({ name: item.month, Count: item.count });
+  });
 
     /*
     //Once with Dummy Data
@@ -68,29 +71,39 @@ const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
               !isDashboard ? "h-[90%]" : "h-full"
             } flex items-center justify-center`}
           >
-            <ResponsiveContainer
-              width={isDashboard ? "100%" : "90%"}
-              height={isDashboard ? "100%" : "50%"}
-            >
-              <LineChart
-                width={500}
-                height={300}
-                data={analyticsData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
+            {error ? (
+              <p className="text-black dark:text-white opacity-80 font-Poppins px-5">
+                Failed to load orders analytics.
+              </p>
+            ) : analyticsData.length === 0 ? (
+              <p className="text-black dark:text-white opacity-80 font-Poppins px-5">
+                No orders analytics data available.
+              </p>
+            ) : (
+              <ResponsiveContainer
+                width={isDashboard ? "100%" : "90%"}
+                height={isDashboard ? "100%" : "50%"}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                {!isDashboard && <Legend />}
-                <Line type="monotone" dataKey="Count" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
+                <LineChart
+                  width={500}
+                  height={300}
+                  data={analyticsData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  {!isDashboard && <Legend />}
+                  <Line type="monotone" dataKey="Count" stroke="#82ca9d" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       )}

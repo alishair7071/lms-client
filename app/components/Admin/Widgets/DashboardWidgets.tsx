@@ -58,12 +58,20 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
         } else {
             if (data && ordersData) {
                 // server returns months in newest -> oldest order (current month is index 0)
-                const usersCurrentMonth = data?.users?.last12Months?.[0]?.count ?? 0;
-                const usersPreviousMonth = data?.users?.last12Months?.[1]?.count ?? 0;
+                const usersMonths =
+                    data?.users?.last12Months ?? data?.last12Months ?? data?.usersLast12Months ?? [];
+                const ordersMonths =
+                    ordersData?.orders?.last12Months ??
+                    ordersData?.last12Months ??
+                    ordersData?.ordersLast12Months ??
+                    [];
+
+                const usersCurrentMonth = usersMonths?.[0]?.count ?? 0;
+                const usersPreviousMonth = usersMonths?.[1]?.count ?? 0;
                 const ordersCurrentMonth =
-                    ordersData?.orders?.last12Months?.[0]?.count ?? 0;
+                    ordersMonths?.[0]?.count ?? 0;
                 const ordersPreviousMonth =
-                    ordersData?.orders?.last12Months?.[1]?.count ?? 0;
+                    ordersMonths?.[1]?.count ?? 0;
 
                 const usersPercentChange =
                     usersPreviousMonth !== 0

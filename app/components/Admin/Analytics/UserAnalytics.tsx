@@ -16,17 +16,18 @@ type Props = {
 };
 
 const UserAnalytics: FC<Props> = ({ isDashboard }) => {
-  const { data, isLoading } = useGetUsersAnalyticsQuery({});
+  const { data, isLoading, error } = useGetUsersAnalyticsQuery({});
 
-  const analyticsData: any = [];
-  if (data && data.users && data.users.last12Months) {
-    data.users.last12Months.forEach((item: any) => {
-      analyticsData.push({
-        name: item.month,
-        count: item.count,
-      });
+  const last12Months =
+    data?.users?.last12Months ?? data?.last12Months ?? data?.usersLast12Months ?? [];
+
+  const analyticsData: any[] = [];
+  last12Months?.forEach?.((item: any) => {
+    analyticsData.push({
+      name: item.month,
+      count: item.count,
     });
-  }
+  });
 
   
   /* // once with dummy data
@@ -79,30 +80,40 @@ const UserAnalytics: FC<Props> = ({ isDashboard }) => {
               isDashboard ? "h-[30vh]" : "h-screen"
             } flex items-center justify-center`}
           >
-            <ResponsiveContainer
-              width={isDashboard ? "100%" : "90%"}
-              height={!isDashboard ? "50%" : "100%"}
-            >
-              <AreaChart
-                data={analyticsData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 0,
-                  bottom: 0,
-                }}
+            {error ? (
+              <p className="text-black dark:text-white opacity-80 font-Poppins px-5">
+                Failed to load users analytics.
+              </p>
+            ) : analyticsData.length === 0 ? (
+              <p className="text-black dark:text-white opacity-80 font-Poppins px-5">
+                No users analytics data available.
+              </p>
+            ) : (
+              <ResponsiveContainer
+                width={isDashboard ? "100%" : "90%"}
+                height={!isDashboard ? "50%" : "100%"}
               >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#4d62d9"
-                  fill="#4d62d9"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                <AreaChart
+                  data={analyticsData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#4d62d9"
+                    fill="#4d62d9"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       )}

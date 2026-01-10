@@ -19,6 +19,7 @@ import CheckOutForm from "../Payment/CheckOutForm";
 import { useLoadUserQuery } from "../../../redux/features/api/apiSlice";
 import Image from "next/image";
 import { VscVerifiedFilled } from "react-icons/vsc";
+import { useSelector } from "react-redux";
 
 const CourseDetails: FC<Props> = ({
   data,
@@ -28,12 +29,17 @@ const CourseDetails: FC<Props> = ({
   setOpen: OpenAuthModel,
   createPaymentIntentFn,
 }) => {
-  const { data: userData,refetch } = useLoadUserQuery(undefined, {});
+  const reduxUser = useSelector((state: any) => state.auth.user);
+  // Prefer Redux user (loaded in app/layout.tsx); fall back to API if needed.
+  const {
+    data: userData,
+    isLoading: isLoadingUser,
+    isFetching: isFetchingUser,
+    refetch,
+  } = useLoadUserQuery(undefined, { skip: !!reduxUser });
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<any>();
-  useEffect(() => {
-    setUser(userData?.user);
-  }, [userData]);
+
+  const user = reduxUser || userData?.user;
   //persentage logic
   const discountPercentage =
     ((data?.estimatedPrice - data?.price) / data?.estimatedPrice) * 100;
@@ -48,13 +54,25 @@ const CourseDetails: FC<Props> = ({
     });
 
   const handleOrder = async () => {
-    if (user) {
-      await createPaymentIntentFn(data.price);
-      setOpen(true);
-    } else {
+    // If auth is still resolving, try one refetch before deciding.
+    if (!user && (isLoadingUser || isFetchingUser)) {
+      const res: any = await refetch();
+      const refreshedUser = res?.data?.user;
+      if (refreshedUser) {
+        await createPaymentIntentFn(data.price);
+        setOpen(true);
+        return;
+      }
+    }
+
+    if (!user) {
       setRoute("Login");
       OpenAuthModel(true);
+      return;
     }
+
+    await createPaymentIntentFn(data.price);
+    setOpen(true);
   };
 
   return (
