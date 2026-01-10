@@ -6,13 +6,11 @@ import { ThemeProvider } from "./utils/theme-provider";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "./Provider";
 import {SessionProvider} from "next-auth/react";
-import { useLoadUserQuery } from "../redux/features/api/apiSlice";
+import { useLoadUserQuery, useRefreshTokenQuery } from "../redux/features/api/apiSlice";
 import Loader from "./components/Loader/Loader";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import  socketIO  from "socket.io-client";
-const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "/";
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+import socketIO, { type Socket } from "socket.io-client";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -59,35 +57,52 @@ export default function RootLayout({
 
 const Custom = ({children}: {children: React.ReactNode}) => {
   const [mounted, setMounted] = useState(false);
-  const { isLoading } = useLoadUserQuery({});
+  const socketRef = useRef<Socket | null>(null);
+
+  // Avoid calling backend APIs during SSR/static generation (Vercel build),
+  // only run these queries after the app mounts in the browser.
+  const { isLoading: isRefreshing } = useRefreshTokenQuery(undefined, { skip: !mounted });
+  const { isLoading: isLoadingUser } = useLoadUserQuery(undefined, { skip: !mounted });
 
   useEffect(() => {
+    if (!mounted) return;
+
+    const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "/";
+    const socket = socketIO(ENDPOINT, { transports: ["websocket"] });
+    socketRef.current = socket;
+
     const onConnect = () => {
-      console.log("Connected to socket", socketId.id);
+      console.log("Connected to socket", socket.id);
     };
 
-    const onDisconnect = (reason: any) => {
+    const onDisconnect = (reason: unknown) => {
       console.log("Socket disconnected:", reason);
     };
-    const onConnectError = (err: any) => {
-      console.log("Socket connect_error:", err?.message || err);
+    const onConnectError = (err: unknown) => {
+      const msg =
+        typeof err === "object" && err && "message" in err
+          ? (err as { message?: unknown }).message
+          : err;
+      console.log("Socket connect_error:", msg);
     };
 
-    socketId.on("connect", onConnect);
-    socketId.on("disconnect", onDisconnect);
-    socketId.on("connect_error", onConnectError);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
 
     // If the socket connected before this effect ran, "connect" won't fire again.
-    if (socketId.connected) {
+    if (socket.connected) {
       onConnect();
     }
 
     return () => {
-      socketId.off("connect", onConnect);
-      socketId.off("disconnect", onDisconnect);
-      socketId.off("connect_error", onConnectError);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
     setMounted(true);
@@ -98,7 +113,7 @@ const Custom = ({children}: {children: React.ReactNode}) => {
   }
   return (
     <>
-      {isLoading ? (
+      {isRefreshing || isLoadingUser ? (
         <>
           <Loader />
         </>

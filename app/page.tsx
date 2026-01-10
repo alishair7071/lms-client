@@ -1,5 +1,5 @@
 'use client'
-import { FC, useState } from "react"
+import { useState } from "react"
 import Heading from "./utils/Heading";
 import Header from "./components/Header";
 import Hero from "./components/Route/Hero";
@@ -8,12 +8,7 @@ import Reviews from "./components/Route/Reviews";
 import FAQ from "./components/Route/FAQ";
 import Footer from "./components/Footer";
 
-interface Props  {
-  title?: string;
-}
-
-
-const Page: FC<Props> = (props) => {
+const Page = () => {
   const [open, setOpen]= useState(false);
   const [activeItem, setActiveItem]= useState(0);
   const [route, setRoute]= useState("Login");
