@@ -45,7 +45,7 @@ const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
   
   
   return (
-    <div>
+    <div className={isDashboard ? "h-full" : ""}>
       {isLoading ? (
         <Loader />
       ) : (
