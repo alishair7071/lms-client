@@ -77,7 +77,7 @@ const UserAnalytics: FC<Props> = ({ isDashboard }) => {
 
           <div
             className={`w-full ${
-              isDashboard ? "h-[30vh]" : "h-screen"
+              isDashboard ? "h-[260px] 800px:h-[30vh]" : "h-[60vh] 800px:h-screen"
             } flex items-center justify-center`}
           >
             {error ? (
@@ -102,7 +102,14 @@ const UserAnalytics: FC<Props> = ({ isDashboard }) => {
                     bottom: 0,
                   }}
                 >
-                  <XAxis dataKey="name" />
+                  <XAxis
+                    dataKey="name"
+                    height={60}
+                    interval="preserveStartEnd"
+                    angle={-35}
+                    textAnchor="end"
+                    tick={{ fontSize: 11 }}
+                  />
                   <YAxis />
                   <Tooltip />
                   <Area

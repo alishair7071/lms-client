@@ -49,7 +49,7 @@ const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
       {isLoading ? (
         <Loader />
       ) : (
-        <div className={isDashboard ? "h-[30vh]" : "h-screen"}>
+        <div className={isDashboard ? "h-full" : "h-[60vh] 800px:h-screen"}>
           <div
             className={isDashboard ? "mt-[0px] pl-[40px] mb-2" : "mt-[50px]"}
           >
@@ -85,8 +85,6 @@ const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
                 height={isDashboard ? "100%" : "50%"}
               >
                 <LineChart
-                  width={500}
-                  height={300}
                   data={analyticsData}
                   margin={{
                     top: 5,
@@ -96,7 +94,14 @@ const OrdersAnalytics: FC<Props> = ({ isDashboard }) => {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis
+                    dataKey="name"
+                    height={60}
+                    interval="preserveStartEnd"
+                    angle={-35}
+                    textAnchor="end"
+                    tick={{ fontSize: 11 }}
+                  />
                   <YAxis />
                   <Tooltip />
                   {!isDashboard && <Legend />}
