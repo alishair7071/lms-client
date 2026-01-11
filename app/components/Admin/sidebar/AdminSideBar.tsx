@@ -31,6 +31,9 @@ import { useLogoutUserMutation } from "../../../../redux/features/auth/authApi";
 import { signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { userLoggedOut } from "../../../../redux/features/auth/authSlice";
+import { useRouter } from "next/navigation";
 
 type itemProps = {
   title: string;
@@ -61,16 +64,21 @@ const AdminSideBar = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [logoutUser] = useLogoutUserMutation();
+  const dispatch = useDispatch();
+  const router = useRouter();
 
 
   const logoutHandler = async () => {    
-    await signOut({ redirect: false });
     try {
       await logoutUser(undefined).unwrap();
-      toast.success("Logged out successfully!");
     } catch (err) {
-      toast.error("Failed to logout");
-      console.log(err);
+      console.log("Logout request failed (continuing local logout):", err);
+    } finally {
+      dispatch(userLoggedOut());
+      await signOut({ redirect: false });
+      toast.success("Logged out successfully!");
+      router.push("/");
+      router.refresh();
     }
   };
 

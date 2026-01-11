@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import SideBarProfile from "./SideBarProfile";
 import { useLogoutUserMutation } from "../../../redux/features/auth/authApi";
 import { signOut } from "next-auth/react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ProfileInfo from "./ProfileInfo";
 import toast from "react-hot-toast";
 import ChangePassword from "./ChangePassword";
 import CourseCard from "../Courses/CourseCard";
 import { useGetUsersAllCoursesQuery } from "../../../redux/features/courses/courseApi";
+import { useDispatch } from "react-redux";
+import { userLoggedOut } from "../../../redux/features/auth/authSlice";
 
 type Props = {
   user: any;
@@ -21,6 +23,7 @@ const Profile = ({ user }: Props) => {
   const [avatar, setAvatar] = useState(null);
   const [logoutUser] = useLogoutUserMutation();
   const router = useRouter();
+  const dispatch = useDispatch();
   const [courses, setCourses] = useState<any[]>([]);
   const { data, isLoading } = useGetUsersAllCoursesQuery(undefined, {});
 
@@ -43,13 +46,17 @@ const Profile = ({ user }: Props) => {
 
 
   const logOutHandler = async () => {
-    await signOut({ redirect: false });
     try {
       await logoutUser(undefined).unwrap();
-      toast.success("Logged out successfully!");
     } catch (err) {
-      toast.error("Failed to logout");
-      console.log(err);
+      // Backend logout should now be resilient, but still don't block UI logout on errors.
+      console.log("Logout request failed (continuing local logout):", err);
+    } finally {
+      dispatch(userLoggedOut());
+      await signOut({ redirect: false });
+      toast.success("Logged out successfully!");
+      router.push("/");
+      router.refresh();
     }
   };
 

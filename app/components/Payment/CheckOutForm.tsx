@@ -29,7 +29,7 @@ const CheckOutForm = ({ data, user,refetch }: Props) => {
   const [createOrder, { error, data: orderData }] = useCreateOrderMutation({});
   const [loadUser, setLoadUser] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const {} = useLoadUserQuery({ skip: loadUser ? false : true });
+  useLoadUserQuery(undefined, { skip: !loadUser });
   
   const handleSubmit = async (e: any) => {
     e.preventDefault();
