@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import SideBarProfile from "./SideBarProfile";
 import { useLogoutUserMutation } from "../../../redux/features/auth/authApi";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import ProfileInfo from "./ProfileInfo";
 import toast from "react-hot-toast";
 import ChangePassword from "./ChangePassword";
@@ -22,7 +21,6 @@ const Profile = ({ user }: Props) => {
   const [active, setActive] = useState(1);
   const [avatar, setAvatar] = useState(null);
   const [logoutUser] = useLogoutUserMutation();
-  const router = useRouter();
   const dispatch = useDispatch();
   const [courses, setCourses] = useState<any[]>([]);
   const { data, isLoading } = useGetUsersAllCoursesQuery(undefined, {});
@@ -53,10 +51,9 @@ const Profile = ({ user }: Props) => {
       console.log("Logout request failed (continuing local logout):", err);
     } finally {
       dispatch(userLoggedOut());
-      await signOut({ redirect: false });
       toast.success("Logged out successfully!");
-      router.push("/");
-      router.refresh();
+      // End NextAuth session too (prevents automatic re-login on refresh)
+      await signOut({ redirect: true, callbackUrl: "/" });
     }
   };
 

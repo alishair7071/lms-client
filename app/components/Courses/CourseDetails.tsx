@@ -40,6 +40,7 @@ const CourseDetails: FC<Props> = ({
   const [open, setOpen] = useState(false);
 
   const user = reduxUser || userData?.user;
+  const isLoggedIn = !!user && typeof user === "object" && !!user._id;
   //persentage logic
   const discountPercentage =
     ((data?.estimatedPrice - data?.price) / data?.estimatedPrice) * 100;
@@ -47,7 +48,7 @@ const CourseDetails: FC<Props> = ({
   const discountPercentagePrice = discountPercentage.toFixed(0);
   //checking weather the user has purchased this course or not
   const isPurchased =
-    user &&
+    isLoggedIn &&
     user.courses?.find((item: any) => {
       const courseId = item?.courseId ?? item?._id ?? item;
       return courseId?.toString?.() === data?._id?.toString?.();
@@ -65,7 +66,7 @@ const CourseDetails: FC<Props> = ({
       }
     }
 
-    if (!user) {
+    if (!isLoggedIn) {
       setRoute("Login");
       OpenAuthModel(true);
       return;

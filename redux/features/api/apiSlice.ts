@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { userLogin } from "../auth/authSlice";
+import { userLoggedOut, userLogin } from "../auth/authSlice";
 
 export const apiSlice = createApi({
   reducerPath: "api",
@@ -25,12 +25,18 @@ export const apiSlice = createApi({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-          dispatch(
-            userLogin({
-              accessToken: result.data.accessToken,
-              user: result.data.user,
-            })
-          );
+          const user = result.data?.user;
+          // Don't treat "guest" (missing _id) as logged in
+          if (user && typeof user === "object" && user._id) {
+            dispatch(
+              userLogin({
+                accessToken: result.data.accessToken,
+                user,
+              })
+            );
+          } else {
+            dispatch(userLoggedOut());
+          }
         } catch (error) {
           console.log("Error occured in loadUser api", error);
         }
