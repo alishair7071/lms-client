@@ -1,5 +1,4 @@
 import { styles } from "../../styles/styles";
-import { useLoadUserQuery } from "../../../redux/features/api/apiSlice";
 import { useCreateOrderMutation } from "../../../redux/features/orders/orderApi";
 import {
   LinkAuthenticationElement,
@@ -11,6 +10,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import socketIO from "socket.io-client";
+import { useDispatch, useSelector } from "react-redux";
+import { userLogin } from "../../../redux/features/auth/authSlice";
 const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_URI || "";
 
 type Props = {
@@ -20,16 +21,16 @@ type Props = {
   refetch:any
 };
 
-const CheckOutForm = ({ data, user,refetch }: Props) => {
+const CheckOutForm = ({ data, user, refetch, setOpen }: Props) => {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const token = useSelector((state: any) => state.auth.token);
   const socketRef = useRef<ReturnType<typeof socketIO> | null>(null);
   const [message, setMessage] = useState<any>("");
   const [createOrder, { error, data: orderData }] = useCreateOrderMutation({});
-  const [loadUser, setLoadUser] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  useLoadUserQuery(undefined, { skip: !loadUser });
 
   const courseId = data?._id as string | undefined;
   const courseName = data?.name as string | undefined;
@@ -67,13 +68,33 @@ const CheckOutForm = ({ data, user,refetch }: Props) => {
   };
   useEffect(() => {
     if (orderData) {
-      refetch();
+      // Frontend-only auth: do NOT refetch /me here (it can overwrite state).
+      // Instead, update Redux user locally to reflect the newly purchased course.
+      if (user && courseId) {
+        const existingCourses = Array.isArray(user.courses) ? user.courses : [];
+        const alreadyHas = existingCourses.some((item: any) => {
+          const id = item?.courseId ?? item?._id ?? item;
+          return id?.toString?.() === courseId?.toString?.();
+        });
+        if (!alreadyHas) {
+          dispatch(
+            userLogin({
+              accessToken: token,
+              user: {
+                ...user,
+                courses: [...existingCourses, { courseId }],
+              },
+            })
+          );
+        }
+      }
       socketRef.current?.emit?.("notification", {
         title: "New Order",
         message: `You Have A New Order From ${courseName ?? "a course"}`,
         userId,
       });
-      setLoadUser(true);
+      // Close modal after success
+      setOpen(false);
       if (courseId) {
         router.push(`/course-access/${courseId}`);
       } else {

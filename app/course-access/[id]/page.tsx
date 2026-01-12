@@ -1,39 +1,36 @@
 "use client";
 import Loader from "../../components/Loader/Loader";
-import { useLoadUserQuery } from "../../../redux/features/api/apiSlice";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import CourseContent from "../../components/Courses/CourseContent";
 import Footer from "../../components/Footer";
+import { useSelector } from "react-redux";
 
 const Page = () => {
   const params = useParams();
   const id = params?.id as string;
   const router = useRouter();
-  const { isLoading, error, data } = useLoadUserQuery(undefined, {});
+  const user = useSelector((state: any) => state.auth.user);
   useEffect(() => {
-    if (data) {
-      const isPurchased =
-        data &&
-        data.user.courses.find((item: any) => {
-          const courseId = item?.courseId ?? item?._id ?? item;
-          return courseId?.toString?.() === id?.toString?.();
-        });
-      if (!isPurchased) {
-        router.replace("/");
-      }
+    if (!user || !user?._id) {
+      router.replace("/");
+      return;
     }
-    if (error) {
+    const isPurchased = user?.courses?.find((item: any) => {
+      const courseId = item?.courseId ?? item?._id ?? item;
+      return courseId?.toString?.() === id?.toString?.();
+    });
+    if (!isPurchased) {
       router.replace("/");
     }
-  }, [data, error, id, isLoading, router]);
+  }, [user, id, router]);
   return (
     <>
-      {isLoading ? (
+      {!user ? (
         <Loader />
       ) : (
         <div>
-          <CourseContent id={id} user={data?.user} />
+          <CourseContent id={id} user={user} />
           <Footer />
         </div>
       )}

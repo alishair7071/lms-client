@@ -6,8 +6,6 @@ import { ThemeProvider } from "./utils/theme-provider";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "./Provider";
 import {SessionProvider} from "next-auth/react";
-import { useLoadUserQuery, useRefreshTokenQuery } from "../redux/features/api/apiSlice";
-import Loader from "./components/Loader/Loader";
 import { useEffect, useRef, useState } from "react";
 
 import socketIO, { type Socket } from "socket.io-client";
@@ -59,11 +57,6 @@ const Custom = ({children}: {children: React.ReactNode}) => {
   const [mounted, setMounted] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
-  // Avoid calling backend APIs during SSR/static generation (Vercel build),
-  // only run these queries after the app mounts in the browser.
-  const { isLoading: isRefreshing } = useRefreshTokenQuery(undefined, { skip: !mounted });
-  const { isLoading: isLoadingUser } = useLoadUserQuery(undefined, { skip: !mounted });
-
   useEffect(() => {
     if (!mounted) return;
 
@@ -113,13 +106,7 @@ const Custom = ({children}: {children: React.ReactNode}) => {
   }
   return (
     <>
-      {isRefreshing || isLoadingUser ? (
-        <>
-          <Loader />
-        </>
-      ) : (
-        <>{children}</>
-      )}
+      <>{children}</>
     </>
   );
 }
