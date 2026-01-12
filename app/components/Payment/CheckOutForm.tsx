@@ -8,11 +8,10 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import socketIO from "socket.io-client";
 const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_URI || "";
-const socket = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 type Props = {
   setOpen: any;
@@ -25,11 +24,27 @@ const CheckOutForm = ({ data, user,refetch }: Props) => {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
+  const socketRef = useRef<ReturnType<typeof socketIO> | null>(null);
   const [message, setMessage] = useState<any>("");
   const [createOrder, { error, data: orderData }] = useCreateOrderMutation({});
   const [loadUser, setLoadUser] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   useLoadUserQuery(undefined, { skip: !loadUser });
+
+  const courseId = data?._id as string | undefined;
+  const courseName = data?.name as string | undefined;
+  const userId = user?._id as string | undefined;
+
+  useEffect(() => {
+    // Avoid crashing the whole page if socket env isn't configured (common in prod previews).
+    if (!ENDPOINT) return;
+    const s = socketIO(ENDPOINT, { transports: ["websocket"] });
+    socketRef.current = s;
+    return () => {
+      s.disconnect();
+      socketRef.current = null;
+    };
+  }, []);
   
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -47,19 +62,23 @@ const CheckOutForm = ({ data, user,refetch }: Props) => {
       setIsLoading(false);
     } else if (paymentIntent && paymentIntent.status === "succeeded") {
       setIsLoading(false);
-      createOrder({ courseId: data._id, payment_info: paymentIntent, userId: user?._id });
+      createOrder({ courseId, payment_info: paymentIntent, userId });
     }
   };
   useEffect(() => {
     if (orderData) {
       refetch();
-      socket.emit("notification", {
+      socketRef.current?.emit?.("notification", {
         title: "New Order",
-        message: `You Have A New Order From ${data?.name}`,
-        userId: user?._id,
+        message: `You Have A New Order From ${courseName ?? "a course"}`,
+        userId,
       });
       setLoadUser(true);
-      router.push(`/course-access/${data._id}`);
+      if (courseId) {
+        router.push(`/course-access/${courseId}`);
+      } else {
+        router.push("/");
+      }
     }
     if (error) {
       if ("data" in error) {
@@ -67,7 +86,7 @@ const CheckOutForm = ({ data, user,refetch }: Props) => {
         toast.error(errorMessage.data.message);
       }
     }
-  }, [orderData, error, data._id, refetch, data.name, user._id, router]);
+  }, [orderData, error, courseId, courseName, userId, refetch, router]);
   return (
     <form id="payment-form" onSubmit={handleSubmit}>
       <LinkAuthenticationElement
