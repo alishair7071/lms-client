@@ -52,11 +52,17 @@ export const courseApi = apiSlice.injectEndpoints({
     }),
 
     getCourseContent: builder.query({
-      query: (id) => ({
-        url: `get-course-content/${id}`,
-        method: "GET",
-        credentials: "include" as const,
-      }),
+      query: (arg) => {
+        // Backwards compatible: allow calling with just `id` (string)
+        const id = typeof arg === "string" ? arg : arg?.id;
+        const userId = typeof arg === "string" ? undefined : arg?.userId;
+        const qs = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+        return {
+          url: `get-course-content/${id}${qs}`,
+          method: "GET",
+          credentials: "include" as const,
+        };
+      },
     }),
     
     addnewQuestion: builder.mutation({
