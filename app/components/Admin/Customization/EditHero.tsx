@@ -9,6 +9,7 @@ import {
   useEditLayoutMutation,
   useGetHeroDataQuery,
 } from "../../../../redux/features/layout/layoutApi";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 
 const EditHero = () => {
@@ -30,9 +31,8 @@ const EditHero = () => {
       refetch();
       toast.success("Hero-section updated successfully!");
     }
-    if (error && "data" in error) {
-      const errorData = error as any;
-      toast.error(errorData?.data?.message);
+    if (error) {
+      toast.error(getErrorMessage(error, "Could not update the hero section. Please try again."));
     }
   }, [data, isSuccess, refetch, error]);
 

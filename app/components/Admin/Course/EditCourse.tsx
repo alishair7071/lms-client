@@ -10,6 +10,7 @@ import {
 } from "../../../../redux/features/courses/courseApi";
 import toast from "react-hot-toast";
 import { redirect } from "next/navigation";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 type Props = {
   id: string;
@@ -64,10 +65,8 @@ const EditCourse: FC<Props> = ({ id }) => {
       toast.success("Course updated successfully");
       redirect("/admin/courses");
     }
-    if (error && "data" in error) {
-      const errorMessage =
-        (error as any).data?.message || "Failed to update course";
-      toast.error(errorMessage);
+    if (error) {
+      toast.error(getErrorMessage(error, "Failed to update course. Please try again."));
     }
   }, [isSuccess, error]);
 

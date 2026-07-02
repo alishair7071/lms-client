@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { styles } from "../../../app/styles/styles";
 import { useLoginMutation } from "../../../redux/features/auth/authApi";
 import {signIn} from "next-auth/react";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 type Props = {
   setRoute: (route: string) => void;
@@ -29,7 +30,7 @@ const schema = Yup.object().shape({
 const Login = (props: Props) => {
   const { setOpen } = props;
   const [show, setShow] = useState(false);
-  const [login, {isSuccess, data, error}] = useLoginMutation();
+  const [login, {isSuccess, data, error, isLoading}] = useLoginMutation();
 
   const formik = useFormik({
     initialValues: {
@@ -45,14 +46,11 @@ const Login = (props: Props) => {
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Login Successfully!");
+      toast.success(data?.message || "Logged in successfully!");
       setOpen(false);
     }
     if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-      }
+      toast.error(getErrorMessage(error, "Login failed. Please try again."));
     }
   }, [isSuccess, error]);
 
@@ -113,7 +111,12 @@ const Login = (props: Props) => {
           )}
         </div>
         <div className="w-full mt-5">
-          <input type="submit" className={`${styles.button}`} />
+          <input
+            type="submit"
+            value={isLoading ? "Logging in..." : "Login"}
+            disabled={isLoading}
+            className={`${styles.button} ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+          />
         </div>
         <br />
         <br />

@@ -8,6 +8,7 @@ import {
   import { AiOutlineDelete } from "react-icons/ai";
   import toast from "react-hot-toast";
   import { IoMdAddCircleOutline } from "react-icons/io";
+  import { getErrorMessage } from "../../../utils/getErrorMessage";
   
   
   const EditCategories = () => {
@@ -29,9 +30,8 @@ import {
         refetch()
         toast.success("Categories Updated Successfully!");
       }
-      if (error && "data" in error) {
-        const errorData = error as any;
-        toast.error(errorData?.data?.message);
+      if (error) {
+        toast.error(getErrorMessage(error, "Could not update categories. Please try again."));
       }
     }, [data, layoutSuccess, error,refetch]);
     

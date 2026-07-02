@@ -9,6 +9,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { HiMinus, HiPlus } from "react-icons/hi";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import Loader from "../../Loader/Loader";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 
 const EditFaq = () => {
@@ -31,9 +32,8 @@ const EditFaq = () => {
       refetch();
       toast.success("Faq-updated successfully!");
     }
-    if (error && "data" in error) {
-      const errorData = error as any;
-      toast.error(errorData?.data?.message);
+    if (error) {
+      toast.error(getErrorMessage(error, "Could not update the FAQ. Please try again."));
     }
   }, [data, layoutSuccess, error,refetch]);
   //setting the clicked question to active/inactive

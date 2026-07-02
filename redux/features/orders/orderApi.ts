@@ -18,10 +18,11 @@ export const orderApi = apiSlice.injectEndpoints({
     }),
 
     createPaymentIntent: builder.mutation({
-      query: (amount) => ({
+      // The server derives the amount from the course price, so we only send the id.
+      query: (courseId) => ({
         url: "payment/process",
         method: "POST",
-        body: { amount },
+        body: { courseId },
         credentials: "include" as const,
       }),
     }),

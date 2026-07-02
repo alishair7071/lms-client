@@ -12,6 +12,7 @@ import { FcGoogle } from "react-icons/fc";
 import { styles } from "../../../app/styles/styles";
 import toast from "react-hot-toast";
 import { useRegisterMutation } from "../../../redux/features/auth/authApi";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 type Props = {
   setRoute: (route: string) => void;
@@ -30,19 +31,16 @@ const schema = Yup.object().shape({
 
 const SignUp = ({ setRoute, setOpen }: Props) => {
   const [show, setShow] = useState(false);
-  const [register, {isSuccess, data, error}] = useRegisterMutation();
+  const [register, {isSuccess, data, error, isLoading}] = useRegisterMutation();
 
   useEffect(() => {
     if (isSuccess) {
-      const message = data?.message || "Registration Successfull!";
+      const message = data?.message || "Registration successful! Please verify your account.";
       toast.success(message);
       setRoute("Verification");
     }
     if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-      }
+      toast.error(getErrorMessage(error, "Registration failed. Please try again."));
     }
   }, [isSuccess, error]);
 
@@ -130,7 +128,12 @@ const SignUp = ({ setRoute, setOpen }: Props) => {
           )}
         </div>
         <div className="w-full mt-5">
-          <input type="submit" value="Sign Up" className={`${styles.button}`} />
+          <input
+            type="submit"
+            value={isLoading ? "Creating account..." : "Sign Up"}
+            disabled={isLoading}
+            className={`${styles.button} ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+          />
         </div>
         <br />
         <br />

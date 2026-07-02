@@ -8,6 +8,7 @@ import CoursePreview from "./CoursePreview";
 import { useCreateCourseMutation } from "../../../../redux/features/courses/courseApi";
 import toast from "react-hot-toast";
 import { redirect } from "next/navigation";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 
 const CreateCourse = () => {
@@ -53,10 +54,7 @@ const CreateCourse = () => {
       redirect("/admin/courses");
     }
     if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage?.data.message);
-      }
+      toast.error(getErrorMessage(error, "Could not create the course. Please try again."));
     }
   }, [isSuccess, error]);
 

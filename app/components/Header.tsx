@@ -15,6 +15,7 @@ import avatar from "../../public/assetes/avatardefault.jpg";
 import { useSession } from "next-auth/react";
 import { useSocialAuthMutation } from "../../redux/features/auth/authApi";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../utils/getErrorMessage";
 
 type Props = {
   open: boolean;
@@ -43,10 +44,13 @@ const Header = ({ activeItem, open, setOpen, route, setRoute }: Props) => {
       }
     }
     if (isSuccess) {
-      toast.success("Login Successfully!");
+      toast.success("Logged in successfully!");
       setOpen(false);
     }
-  }, [data, user]);
+    if (error) {
+      toast.error(getErrorMessage(error, "Social login failed. Please try again."));
+    }
+  }, [data, user, isSuccess, error]);
 
   useEffect(() => {
     const onScroll = () => {

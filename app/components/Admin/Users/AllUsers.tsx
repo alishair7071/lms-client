@@ -13,6 +13,7 @@ import {
 } from "../../../../redux/features/user/userApi";
 import { styles } from "../../../styles/styles";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 
 type Props = {
@@ -44,10 +45,7 @@ const AllUsers: FC<Props> = ({ isTeam }) => {
  
   useEffect(() => {
     if (updateUserRoleError) {
-      if ("data" in updateUserRoleError) {
-        const errorData = updateUserRoleError as any;
-        toast.error(errorData.data.message);
-      }
+      toast.error(getErrorMessage(updateUserRoleError, "Could not update the user's role. Please try again."));
     }
 
     if (isSuccess) {
@@ -60,10 +58,7 @@ const AllUsers: FC<Props> = ({ isTeam }) => {
       setOpen(false);
     }
     if (deleteError) {
-      if ("data" in deleteError) {
-        const errorMessage = deleteError as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(deleteError, "Could not delete the user. Please try again."));
     }
   }, [isSuccess, updateUserRoleError, deleteError, deleteSuccess,refetch]);
 

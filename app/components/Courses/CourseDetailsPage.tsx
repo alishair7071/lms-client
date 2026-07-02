@@ -49,17 +49,16 @@ const CourseDetailsPage: FC<Props> = ({ id }: Props) => {
     }
   }, [paymentIntentError]);
 
-  // Trigger payment intent creation when the user actually wants to buy
+  // Trigger payment intent creation when the user actually wants to buy.
+  // We send the courseId (not a price); the server computes the amount securely.
   const handleCreatePaymentIntent = async (price: number) => {
     if (!price || price <= 0) {
       console.error("Invalid price passed to handleCreatePaymentIntent:", price);
       return;
     }
 
-    const amount = Math.round(price * 100);
-
     try {
-      await createPaymentIntent(amount);
+      await createPaymentIntent(id);
     } catch (error) {
       console.error("Failed to create payment intent:", error);
     }

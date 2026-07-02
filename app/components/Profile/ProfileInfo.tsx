@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useEditProfileMutation, useUpdateAvatarMutation } from "../../../redux/features/user/userApi";
 import { useLoadUserQuery } from "../../../redux/features/api/apiSlice";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type ProfileInfoProps = {
     user: any;
@@ -17,8 +18,8 @@ type ProfileInfoProps = {
 const ProfileInfo = ({ user, avatar }: ProfileInfoProps) => {
 
     const [name, setName] = useState(user.name);
-    const [updateAvatar, { isSuccess, error }] = useUpdateAvatarMutation();
-    const [editProfile, { isSuccess: isEditSuccess, error: editError }] = useEditProfileMutation();
+    const [updateAvatar, { isSuccess, error, isLoading: isAvatarLoading }] = useUpdateAvatarMutation();
+    const [editProfile, { isSuccess: isEditSuccess, error: editError, isLoading: isEditLoading }] = useEditProfileMutation();
     const [loadUser, setLoadUser] = useState(false);
     const { } = useLoadUserQuery(undefined, { skip: loadUser ? false : true });
 
@@ -42,8 +43,8 @@ const ProfileInfo = ({ user, avatar }: ProfileInfoProps) => {
             setLoadUser(true);
             toast.success(isSuccess ? "Avatar updated successfully!" : "Profile updated successfully!");
         }
-        if (error as any || editError as any) {
-            console.log(error || editError);
+        if (error || editError) {
+            toast.error(getErrorMessage(error || editError, "Could not update your profile. Please try again."));
         }
     }, [isSuccess, error, isEditSuccess, editError]);
 
@@ -121,9 +122,9 @@ const ProfileInfo = ({ user, avatar }: ProfileInfoProps) => {
                         <br />
                         <input
                             type="submit"
-                            className="w-full 800px:w-[250px] h-[40px] border border-[cyan] text-center dark:text-white text-black rounded-[3px] mt-8 cursor-pointer"
-                            required
-                            value="Update"
+                            disabled={isEditLoading || isAvatarLoading}
+                            className={`w-full 800px:w-[250px] h-[40px] border border-[cyan] text-center dark:text-white text-black rounded-[3px] mt-8 cursor-pointer ${(isEditLoading || isAvatarLoading) ? "opacity-70 cursor-not-allowed" : ""}`}
+                            value={isEditLoading ? "Updating..." : "Update"}
                         />
                     </div>
                 </form>

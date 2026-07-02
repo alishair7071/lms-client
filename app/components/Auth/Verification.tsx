@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { VscWorkspaceTrusted } from "react-icons/vsc";
 import { useSelector } from "react-redux";
 import { useActivationMutation } from "../../../redux/features/auth/authApi";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 
 type Props = {
@@ -24,22 +25,17 @@ type verifyNumberType = {
 const Verification = ({ setRoute }: Props) => {
   const [invalidError, setInvalidError] = useState(false);
   const {token}= useSelector((state:any) => state.auth);
-  const [activation, {isSuccess,error}]= useActivationMutation();
+  const [activation, {isSuccess,error, isLoading}]= useActivationMutation();
 
   //Handling the API response
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Account Activated Successfully!");
+      toast.success("Account activated successfully! You can now log in.");
       setRoute("Login");
     }
     if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-        setInvalidError(true);
-      } else {
-        console.log("An error accured", error);
-      }
+      toast.error(getErrorMessage(error, "Verification failed. Please check the code and try again."));
+      setInvalidError(true);
     }
   }, [isSuccess, error, setRoute]);
  
@@ -67,6 +63,7 @@ const Verification = ({ setRoute }: Props) => {
     const verificationNumber = Object.values(verifyNumber).join("");
     if (verificationNumber.length !== 6) {
       setInvalidError(true);
+      toast.error("Please enter all 6 digits of the code.");
       return;
     }
     await activation({ activation_token: token, activation_code: verificationNumber });
@@ -120,8 +117,12 @@ const Verification = ({ setRoute }: Props) => {
       <br />
       {/* Verify button */}
       <div className="w-full flex justify-center">
-        <button className={`${styles.button}`} onClick={verificationHandler}>
-          Verify OTP
+        <button
+          className={`${styles.button} ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+          onClick={verificationHandler}
+          disabled={isLoading}
+        >
+          {isLoading ? "Verifying..." : "Verify OTP"}
         </button>
       </div>
       <br />

@@ -20,6 +20,7 @@ import {
 import { BiMessage } from "react-icons/bi";
 import { VscVerifiedFilled } from "react-icons/vsc";
 import { format } from "timeago.js";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 import socketIO from "socket.io-client";
 const ENDPOINT =
   process.env.NEXT_PUBLIC_SOCKET_SERVER_URI ||
@@ -117,10 +118,7 @@ const CourseContentMedia: FC<Props> = ({
       });
     }
     if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(error, "Could not post your question. Please try again."));
     }
     // Answer Response
     if (answerSuccess) {
@@ -136,10 +134,7 @@ const CourseContentMedia: FC<Props> = ({
       }
     }
     if (answerError) {
-      if ("data" in answerError) {
-        const errorMessage = answerError as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(answerError, "Could not post your answer. Please try again."));
     }
     // Review Response
     if (reviewSuccess) {
@@ -154,10 +149,7 @@ const CourseContentMedia: FC<Props> = ({
       });
     }
     if (reviewError) {
-      if ("data" in reviewError) {
-        const errorMessage = reviewError as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(reviewError, "Could not post your review. Please try again."));
     }
     //reply response
     if (replySuccess) {
@@ -168,10 +160,7 @@ const CourseContentMedia: FC<Props> = ({
       toast.success("Reply Added SuccessFully!");
     }
     if (replyError) {
-      if ("data" in replyError) {
-        const errorMessage = replyError as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(replyError, "Could not post your reply. Please try again."));
     }
   }, [
     questionSuccess,

@@ -5,7 +5,7 @@ import Heading from "../../utils/Heading";
 import CourseContentMedia from "./CourseContentMedia";
 import Header from "../Header";
 import CourseContentList from "./CourseContentList";
-import toast from "react-hot-toast";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 type Props = {
   id: string;
   user: any;
@@ -49,13 +49,9 @@ const CourseContent = ({ id, user }: Props) => {
                 Unable to load course content
               </h2>
               <p className="text-[14px] font-Poppins text-black/70 dark:text-white/70 mt-2">
-                {(() => {
-                  if (error && typeof error === "object" && error && "data" in error) {
-                    const e: any = error;
-                    return e?.data?.message ?? "Please try again.";
-                  }
-                  return "Please try again.";
-                })()}
+                {error
+                  ? getErrorMessage(error, "Please try again.")
+                  : "This course doesn't have any content yet."}
               </p>
             </div>
           ) : (

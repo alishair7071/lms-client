@@ -12,7 +12,8 @@ import toast from "react-hot-toast";
 import socketIO from "socket.io-client";
 import { useDispatch, useSelector } from "react-redux";
 import { userLogin } from "../../../redux/features/auth/authSlice";
-const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_URI || "";
+import { getErrorMessage } from "../../utils/getErrorMessage";
+const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
 
 type Props = {
   setOpen: any;
@@ -93,6 +94,7 @@ const CheckOutForm = ({ data, user, refetch, setOpen }: Props) => {
         message: `You Have A New Order From ${courseName ?? "a course"}`,
         userId,
       });
+      toast.success("Payment successful! You now have access to this course.");
       // Close modal after success
       setOpen(false);
       if (courseId) {
@@ -102,10 +104,7 @@ const CheckOutForm = ({ data, user, refetch, setOpen }: Props) => {
       }
     }
     if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
+      toast.error(getErrorMessage(error, "We couldn't complete your order. Please try again."));
     }
   }, [orderData, error, courseId, courseName, userId, refetch, router]);
   return (

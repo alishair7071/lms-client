@@ -15,6 +15,7 @@ import { format } from "timeago.js";
 
 import toast from "react-hot-toast";
 import { styles } from "../../../styles/styles";
+import { getErrorMessage } from "../../../utils/getErrorMessage";
 
 const AllCourses = () => {
     const { theme } = useTheme();
@@ -93,10 +94,7 @@ const AllCourses = () => {
             toast.success("Course Deleted Successfully");
         }
         if (error) {
-            if ("data" in error) {
-                const errorMessage = error as any;
-                toast.error(errorMessage.data.message);
-            }
+            toast.error(getErrorMessage(error, "Could not delete the course. Please try again."));
         }
     }, [isSuccess, error, refetch]);
 

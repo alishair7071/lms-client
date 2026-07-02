@@ -4,6 +4,7 @@ import { useUpdatePasswordMutation } from "../../../redux/features/user/userApi"
 import { styles } from "../../styles/styles";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -13,23 +14,24 @@ const ChangePassword = () => {
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [updatePassword, { isSuccess, error }] = useUpdatePasswordMutation();
-  
+    const [updatePassword, { isSuccess, error, isLoading }] = useUpdatePasswordMutation();
+
     useEffect(() => {
       if (isSuccess) {
         toast.success("Password updated successfully");
       }
       if (error) {
-        if ("data" in error) {
-          const errorData = error as any;
-          toast.error(errorData.data.message);
-        }
+        toast.error(getErrorMessage(error, "Could not update password. Please try again."));
       }
     }, [error, isSuccess]);
-  
+
     const passwordChangeHandler = async (e: any) => {
       e.preventDefault();
-  
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        toast.error("Please fill in all password fields");
+        return;
+      }
       if (newPassword !== confirmPassword) {
         toast.error("New password and confirm password do not match");
       } else {
@@ -105,9 +107,9 @@ const ChangePassword = () => {
               {/* Submit Button */}
               <input
                 type="submit"
-                className="!w-[95%] 800px:w-[250px] h-[40px] border border-[cyan] text-center dark:text-white text-black rounded-[3px] mt-8 cursor-pointer"
-                required
-                value="Update"
+                disabled={isLoading}
+                className={`!w-[95%] 800px:w-[250px] h-[40px] border border-[cyan] text-center dark:text-white text-black rounded-[3px] mt-8 cursor-pointer ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                value={isLoading ? "Updating..." : "Update"}
               />
             </div>
           </form>
